@@ -1,0 +1,31 @@
+﻿# Build outputs
+build/
+*.obj
+*.exe
+*.pdb
+*.ilk
+*.idb
+*.exp
+*.lib
+*.dll
+
+# Logs and dumps
+*.log
+*_out*.txt
+verify_pv_*.txt
+
+# Archives
+*.tar.gz
+
+# IDE
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
