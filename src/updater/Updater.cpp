@@ -64,11 +64,13 @@ bool Updater::ProcessImpl() {
 	}
 
 	if (status.unsafe) {
-		auto result = MessageBox(
-			NULL, 
+		const std::string message =
 			"This application has been marked as \"Unsafe\" to use, its not recommended to proceed.\nDo you want to continue?"
-			"\n\nMore information available at: https://github.com/IMXNOOBX/cs2-external-esp"
-			"\n\nCtrl+C To copy this message",
+			"\n\nMore information available at: " + OBF("https://github.com/Dekrypte0/cs2-external") +
+			"\n\nCtrl+C To copy this message";
+		auto result = MessageBox(
+			NULL,
+			message.c_str(),
 			"Unsafe | Warning", MB_ICONWARNING | MB_YESNO
 		);
 
@@ -82,11 +84,13 @@ bool Updater::ProcessImpl() {
 	}
 	
 	if (current_version < status.version_minimum) {
+		const std::string message =
+			"This application is \"out-of-date\", and might not work as expected.\nDo you want to continue?"
+			"\n\nMore information available at: " + OBF("https://github.com/Dekrypte0/cs2-external") +
+			"\n\nCtrl+C To copy this message";
 		auto result = MessageBox(
 			NULL,
-			"This application is \"out-of-date\", and might not work as expected.\nDo you want to continue?"
-			"\n\nMore information available at: https://github.com/IMXNOOBX/cs2-external-esp"
-			"\n\nCtrl+C To copy this message",
+			message.c_str(),
 			"Out Of Date | Warning", MB_ICONWARNING | MB_YESNO
 		);
 

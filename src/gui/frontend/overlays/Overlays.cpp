@@ -1,5 +1,6 @@
 #include "Overlays.hpp"
 
+#include "core/stealth/Obfuscate.hpp"
 #include "updater/Updater.hpp"
 #include "gui/renderer/Renderer.hpp" // Circular dependency
 #include "gui/frontend/menu/Menu.hpp" // Circular dependency
@@ -39,8 +40,6 @@ bool Overlays::InitImpl() {
 void Overlays::RenderImpl() {
     ImGui::PushFont(this->font);
     {
-        RenderWatermark();
-
         RenderNotice();
         RenderEspStatus();
 
@@ -59,52 +58,6 @@ void Overlays::RenderImpl() {
         RenderBomb();
     }
     ImGui::PopFont();
-}
-
-void Overlays::RenderWatermark() {
-    if (!cfg::settings::watermark)
-        return;
-
-    auto& io = ImGui::GetIO();
-    auto d = ImGui::GetBackgroundDrawList();
-
-    auto snapshot = Cache::CopySnapshot();
-    auto& globals = snapshot.globals;
-
-    static int margin = 10;
-    static int padding = 10;
-    std::string watermark_string = "cs2-external-esp";
-
-    watermark_string += std::format(" | {}fps", (int)io.Framerate);
-
-    if (globals.in_match)
-        watermark_string += std::format(" | {}", globals.map_name);
-
-    auto size = ImGui::CalcTextSize(watermark_string.data());
-
-    auto rect_start = ImVec2(io.DisplaySize.x - margin - padding * 2 - size.x, margin);
-    auto rect_end = ImVec2(io.DisplaySize.x - margin, margin + size.y + padding);
-    auto pos = ImVec2(rect_start.x + padding, rect_start.y + padding * 0.6/* compensate font */);
-
-    d->AddRectFilled(
-        rect_start,
-        rect_end,
-        ImGui::GetColorU32(ImGuiCol_WindowBg, 200.0f / 255.0f),
-        8.f
-    );
-
-    d->AddRect(
-        rect_start,
-        rect_end,
-        ImGui::GetColorU32(ImGuiCol_Border, 200.0f / 255.0f),
-        8.f
-    );
-
-    d->AddText(
-        pos,
-        ImGui::GetColorU32(ImGuiCol_Text),
-        watermark_string.data()
-    );
 }
 
 void Overlays::RenderNotice() {
@@ -147,7 +100,7 @@ void Overlays::RenderNotice() {
     );
 
     d->AddText(
-        pos - ImVec2(0, padding + padding * 0.5),
+        pos - ImVec2(0, static_cast<float>(padding) * 1.5f),
         IM_COL32(255, 200, 0, 255),
         "Notice"
     );
@@ -306,8 +259,8 @@ void Overlays::RenderSpeedChart() {
         return;
 
     if (is_menu_open) {
-        auto height_padding = 25; // some padding to keep the speed number inside the area
-        auto altitude_padding = 10; // so it doesnt go under the titlebar
+        const float height_padding = 25.f;   // keep the speed number inside the area
+        const float altitude_padding = 10.f; // dont go under the titlebar
 
         ImGui::SetNextWindowBgAlpha(0.1f);
         ImGui::SetNextWindowPos(pos - Vec2_t(0, altitude_padding), ImGuiCond_Once);
@@ -329,7 +282,7 @@ void Overlays::RenderSpeedChart() {
     }
 
     Vec2_t speed_2d(local.vel.x, local.vel.y);
-    int speed = floor(speed_2d.len());
+    int speed = static_cast<int>(std::floor(speed_2d.len()));
 
     vel_accumulator += io.DeltaTime;
     size_t buff_size = vel_buffer.size();

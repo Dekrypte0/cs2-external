@@ -1,4 +1,14 @@
 #include "Window.hpp"
+#include "core/stealth/Stealth.hpp"
+
+#include <string>
+
+namespace {
+    // Kept alive for the whole process lifetime: UnregisterClass needs the
+    // same class name that was handed to RegisterClassEx.
+    std::string g_window_class;
+    std::string g_window_title;
+}
 
 ID3D11Device* Window::device = nullptr;
 ID3D11DeviceContext* Window::device_context = nullptr;
@@ -114,7 +124,10 @@ bool Window::SpawnWindow()
 	//wc.style = CS_CLASSDC;
 	wc.style = 0;
 	wc.hInstance = GetModuleHandle(0);
-	wc.lpszClassName = "wa";
+	// Random per-run class name; the old fixed "wa" was a trivial signature.
+	g_window_class = stealth::WindowClass();
+	g_window_title = stealth::WindowTitle();
+	wc.lpszClassName = g_window_class.c_str();
 	wc.lpfnWndProc = window_procedure;
 	//wc.cbClsExtra = 0;
 	//wc.cbWndExtra = 0;
@@ -133,8 +146,8 @@ bool Window::SpawnWindow()
 
 	hwnd = CreateWindowEx(
 		WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW,
-		"wa",
-		"wa",
+		g_window_class.c_str(),
+		g_window_title.c_str(),
 		WS_POPUP | WS_VISIBLE,
 		0, 0, width, height,
 		NULL,
@@ -153,6 +166,8 @@ bool Window::SpawnWindow()
 		return false;
 	}
 
+	// Required for the layered window to composite as transparent. Removing
+	// this makes the client area paint solid black over the game.
 	MARGINS margins = { -1 };
 	DwmExtendFrameIntoClientArea(hwnd, &margins);
 
@@ -168,7 +183,7 @@ bool Window::SpawnWindow()
 void Window::DespawnWindow()
 {
 	DestroyWindow(hwnd);
-	UnregisterClass(wc.lpszClassName, wc.hInstance);
+	UnregisterClass(g_window_class.c_str(), wc.hInstance);
 	LOGF(VERBOSE, "Window Despawned");
 }
 
@@ -294,7 +309,6 @@ void Window::SetBounds(HWND window, RECT bounds) {
 		SWP_NOZORDER | SWP_NOACTIVATE
 	);
 
-	bounds = bounds;
 	UpdateWindow(window);
 }
 

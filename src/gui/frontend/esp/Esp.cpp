@@ -269,7 +269,7 @@ void Esp::RenderPlayerFalgs(Player player, std::pair<Vec2_t, Vec2_t> bounds, boo
 
 	if (cfg::esp::flags::money && player.money) {
 		d->AddText(
-			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, offset),
+			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, static_cast<float>(offset)),
 			IM_COL32(255, 255, 255, 255),
 			std::format("{}$", player.money).c_str()
 		);
@@ -279,7 +279,7 @@ void Esp::RenderPlayerFalgs(Player player, std::pair<Vec2_t, Vec2_t> bounds, boo
 
 	if (cfg::esp::flags::ping && player.ping) {
 		d->AddText(
-			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, offset),
+			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, static_cast<float>(offset)),
 			IM_COL32(255, 255, 255, 255),
 			std::format("{}ms", player.ping).c_str()
 		);
@@ -293,7 +293,7 @@ void Esp::RenderPlayerFalgs(Player player, std::pair<Vec2_t, Vec2_t> bounds, boo
 		auto color = mate ? cfg::esp::colors::flags::flashed_team : cfg::esp::colors::flags::flashed_enemy;
 
 		d->AddText(
-			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, offset),
+			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, static_cast<float>(offset)),
 			ImColor(color),
 			Icons::BLIND
 		);
@@ -305,7 +305,7 @@ void Esp::RenderPlayerFalgs(Player player, std::pair<Vec2_t, Vec2_t> bounds, boo
 		auto color = mate ? cfg::esp::colors::flags::reloading_team : cfg::esp::colors::flags::reloading_enemy;
 
 		d->AddText(
-			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, offset),
+			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, static_cast<float>(offset)),
 			ImColor(color),
 			Icons::RELOAD
 		);
@@ -317,7 +317,7 @@ void Esp::RenderPlayerFalgs(Player player, std::pair<Vec2_t, Vec2_t> bounds, boo
 		auto color = mate ? cfg::esp::colors::flags::defusing_team : cfg::esp::colors::flags::defusing_enemy;
 
 		d->AddText(
-			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, offset),
+			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, static_cast<float>(offset)),
 			ImColor(color),
 			WeaponIcons::CUTTERS
 		);
@@ -329,7 +329,7 @@ void Esp::RenderPlayerFalgs(Player player, std::pair<Vec2_t, Vec2_t> bounds, boo
 		auto color = mate ? cfg::esp::colors::flags::scoped_team : cfg::esp::colors::flags::scoped_enemy;
 
 		d->AddText(
-			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, offset),
+			bounds.first - Vec2_t((bounds.first.x - bounds.second.x) - 10, static_cast<float>(offset)),
 			ImColor(color),
 			WeaponIcons::SCOPE
 		);

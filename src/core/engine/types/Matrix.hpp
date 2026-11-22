@@ -11,15 +11,16 @@ struct view_matrix_t {
 	bool wts(const Vec3_t& pos, const Vec2_t& screen, Vec2_t& out, bool check_bounds = true) {
 		auto bounds = RECT(
 			0, 0,
-			screen.x,
-			screen.y
+			static_cast<LONG>(screen.x),
+			static_cast<LONG>(screen.y)
 		);
 
 		// A bit artificial, but its made by botikes 
 		static int margin = 0;
 
 		float view = 0.f;
-		float SightX = (bounds.right / 2), SightY = (bounds.bottom / 2);
+		float SightX = static_cast<float>(bounds.right) * 0.5f;
+		float SightY = static_cast<float>(bounds.bottom) * 0.5f;
 
 		view = matrix[3][0] * pos.x + matrix[3][1] * pos.y + matrix[3][2] * pos.z + matrix[3][3];
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "http/HttpHelper.hpp"
+#include "core/stealth/Obfuscate.hpp"
 
 struct Status {
     bool unsafe;
@@ -38,5 +39,5 @@ private:
     Status status;
     bool isSetup = false;
     int current_version = 122;
-    std::string status_url = "https://github.com/IMXNOOBX/cs2-external-esp/raw/refs/heads/main/.github/status.json";
+    std::string status_url = OBF("https://github.com/Dekrypte0/cs2-external/raw/refs/heads/main/.github/status.json");
 };

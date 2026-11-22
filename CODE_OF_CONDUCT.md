@@ -29,4 +29,4 @@ Original text courtesy of the [Speak Up! project](http://web.archive.org/web/201
 
 ## Questions?
 
-If you have questions, please see [`CONTRIBUTING.md`](https://github.com/IMXNOOBX/cs2-external-esp/blob/main/CONTRIBUTING.md). If that doesn't answer your questions, feel free to [contact us](discord.gg/pRew8ZDkyp).
+If you have questions, please see [`CONTRIBUTING.md`](https://github.com/Dekrypte0/cs2-external/blob/main/CONTRIBUTING.md). If that doesn't answer your questions, feel free to [contact us](discord.gg/pRew8ZDkyp).

@@ -1,6 +1,6 @@
 # Scripting
 
-Scripts run on [Solis](https://github.com/IMXNOOBX/cs2-external-esp/tree/main/src/external/Solis).
+Scripts run on [Solis](https://github.com/Dekrypte0/cs2-external/tree/main/src/external/Solis).
 
 The application loads every `.sl` file from the working directory and from a `scripts` folder next to it. The `scripts` folder is not created automatically. Each file is compiled separately, so scripts can be added or removed independently, but every file needs its own `main()`.
 

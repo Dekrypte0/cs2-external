@@ -165,10 +165,13 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>common.hpp</PrecompiledHeaderFile>
       <ForcedIncludeFiles>common.hpp</ForcedIncludeFiles>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <AdditionalOptions>/d1trimfile:$(SolutionDir) %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
@@ -190,6 +193,7 @@
     <ClCompile Include="core\engine\classes\Globals.cpp" />
     <ClCompile Include="core\engine\classes\Player.cpp" />
     <ClCompile Include="core\scripting\Scripting.cpp" />
+    <ClCompile Include="core\stealth\Stealth.cpp" />
     <ClCompile Include="core\scripting\SolisScript.cpp" />
     <ClCompile Include="core\scripting\hooks\PhysicalInput.cpp" />
     <ClCompile Include="core\logger\LogHelper.cpp" />
@@ -321,6 +325,8 @@
     <ClInclude Include="core\offsets\Dumper.hpp" />
     <ClInclude Include="core\offsets\Offsets.hpp" />
     <ClInclude Include="core\scripting\Scripting.hpp" />
+    <ClInclude Include="core\stealth\Stealth.hpp" />
+    <ClInclude Include="core\stealth\Obfuscate.hpp" />
     <ClInclude Include="core\scripting\SolisScript.hpp" />
     <ClInclude Include="core\scripting\hooks\PhysicalInput.hpp" />
     <ClInclude Include="external\AsyncLogger\include\AsyncLogger\Logger.hpp" />

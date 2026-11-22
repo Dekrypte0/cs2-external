@@ -14,13 +14,14 @@
     • Sell: This license forbids selling original or modified material for commercial purposes.
     • Sublicense: This license forbids sublicensing original or modified material.
 
-    © Copyright by IMXNOOBX (https://github.com/IMXNOOBX) and contributors.
-    See https://github.com/IMXNOOBX/cs2-external-esp/-/blob/main/LICENSE for full details.
+    © Copyright by dekrypte0 (https://github.com/Dekrypte0) and contributors.
+    See https://github.com/Dekrypte0/cs2-external/-/blob/main/LICENSE for full details.
 */
 
 #include <iostream>
 
 #include "updater/Updater.hpp"
+#include "core/stealth/Stealth.hpp"
 #include "core/engine/Engine.hpp"
 #include "gui/renderer/Renderer.hpp"
 
@@ -32,11 +33,19 @@ int main()
 
     LogHelper::Init();
 
-    LOGF(INFO, "Compiled {}, Welcome to cs2-external-esp-recode!", __TIMESTAMP__);
+    if (!stealth::Init()) {
+        LOGF(FATAL, "Stealth layer failed to initialize, syscall path unavailable");
+        stealth::Shutdown();
+        LogHelper::Destroy();
+        return 1;
+    }
 
-    // Needs to be ran as ADMINISTRATOR
-    if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
-        LOGF(WARNING, "Could not set application process priority to HIGH");
+    LOGF(INFO, "Compiled {}, welcome aboard!", __TIMESTAMP__);
+
+    // Needs to be ran as ADMINISTRATOR. Above-normal only: a high-priority
+    // overlay spinning next to the game steals frame time from it.
+    if (!SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS))
+        LOGF(WARNING, "Could not set application process priority to ABOVE_NORMAL");
 
     if (!Updater::Init() || !Updater::Process()) {
         LOGF(FATAL, "Updater failed to run, the application has not verified its status, execution its not recommended");
@@ -61,6 +70,7 @@ int main()
 
 exit:
     LOGF(INFO, "Thats it, im done, hope you had a great time!");
+    stealth::Shutdown();
     LogHelper::Destroy();
     std::cin.get();
 }

@@ -4,7 +4,7 @@ about: Report bugs using this template, for Environment/General support please u
   discord.
 title: "[BUG]"
 labels: bug
-assignees: IMXNOOBX
+assignees: Dekrypte0
 
 ---
 

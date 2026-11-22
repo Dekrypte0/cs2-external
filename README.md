@@ -10,9 +10,24 @@ Simple external ESP for Counter-Strike 2. After years of development the codebas
 
 ## 🌳 Simple Use
 
-- You can download it from [**Releases**](https://github.com/IMXNOOBX/cs2-external-esp/releases) tab or **build it yourself** by following [developers instructions](#-developer-instructions).
+- You can download it from [**Releases**](https://github.com/Dekrypte0/cs2-external/releases) tab or **build it yourself** by following [developers instructions](#-developer-instructions).
 - Open the game & the `cs2-external-esp.exe`, and thats it!
 - **Star** the repository **if** you **like the project**! ⭐⭐⭐
+
+## 🎛️ Hotkeys
+
+| Key | Action |
+| --- | --- |
+| `INSERT` / `Right Shift` | Toggle the menu |
+| `F3` | Hide or show the overlay window. Reads, scripts and every overlay feature stay active while hidden |
+| `END` | Exit |
+
+## ⚡ Performance
+
+- VSync is off by default — the overlay is no longer locked to 60 Hz.
+- Overlay drawing is capped at ~240 Hz and skipped entirely while hidden with `F3`.
+- Entity cache refreshes every 8 ms (~125 Hz) instead of on every frame.
+- Process priority is above-normal, not high, so the game keeps its frame time.
 
 > If the app crashes on startup, you may be missing the latest [Windows Visual C++ redistributables](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version). Install the appropriate package for your system:
 >
@@ -34,21 +49,18 @@ Simple external ESP for Counter-Strike 2. After years of development the codebas
 
 > This project has been reworked **3 times**, the current one been the third!
 
-* [Discord Overlay (2023)](https://github.com/IMXNOOBX/cs2-external-esp/tree/discord-overlay) is the first and the **simplest** version of all, great to start learning.
-* [Gdi Overlay (2023-2025)](https://github.com/IMXNOOBX/cs2-external-esp/tree/gdi-overlay) is an **improved version**, featuring automatic offset updating & configurations
-* [Modern Version (Today)](https://github.com/IMXNOOBX/cs2-external-esp/tree/main) is the current and the **latest version**, with a click ui, automatic offset scanning and more!
+* [Discord Overlay (2023)](https://github.com/Dekrypte0/cs2-external/tree/discord-overlay) is the first and the **simplest** version of all, great to start learning.
+* [Gdi Overlay (2023-2025)](https://github.com/Dekrypte0/cs2-external/tree/gdi-overlay) is an **improved version**, featuring automatic offset updating & configurations
+* [Modern Version (Today)](https://github.com/Dekrypte0/cs2-external/tree/main) is the current and the **latest version**, with a click ui, automatic offset scanning and more!
 
 ## 📘 Developer Instructions
 
-> - This project is mirrored in the following locations.
->	 - **GitHub**: [*github.com/IMXNOOBX/cs2-external-esp*](https://github.com/IMXNOOBX/cs2-external-esp) (main)
-> 	 - **GitLab**: [*gitlab.com/IMXNOOBX/cs2-external-esp*](https://gitlab.com/IMXNOOBX/cs2-external-esp) (mirror)
->	 - **CodeBerg**: [*codeberg.org/IMXNOOBX/cs2-external-esp*](https://codeberg.org/IMXNOOBX/cs2-external-esp) (mirror)
+> - **GitHub**: [*github.com/Dekrypte0/cs2-external*](https://github.com/Dekrypte0/cs2-external) (main)
 
 1. Clone repository. Make sure you copy the command below to clone dependencies too
 
 ```sh
-git clone --recursive https://github.com/IMXNOOBX/cs2-external-esp
+git clone --recursive https://github.com/Dekrypte0/cs2-external
 ```
 
 * If you cloned the repository before submodules were added, run this command `git submodule update --init --recursive`
@@ -60,7 +72,7 @@ git clone --recursive https://github.com/IMXNOOBX/cs2-external-esp
 
 ## 💫 Credits
 
-* All [contributors](https://github.com/IMXNOOBX/cs2-external-esp/graphs/contributors) who have helped improve the project!
+* All [contributors](https://github.com/Dekrypte0/cs2-external/graphs/contributors) who have helped improve the project!
 * [**a2x**](https://github.com/a2x) for his [offset dumper](https://github.com/a2x/cs2-dumper) and constant updates to it!
 
 ## 🔖 License & Copyright
@@ -80,4 +92,4 @@ This project is licensed under [**CC BY-NC 4.0**](https://creativecommons.org/li
 ```
 
 ### ©️ Copyright
-The content of this project is ©️ by [IMXNOOBX](https://github.com/IMXNOOBX) and the respective contributors. See the [LICENSE.md](LICENSE) file for details.
+The content of this project is ©️ by [dekrypte0](https://github.com/Dekrypte0) and the respective contributors. See the [LICENSE.md](LICENSE) file for details.

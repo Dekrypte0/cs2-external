@@ -39,8 +39,10 @@ bool Cache::RefreshImpl() {
     if (now - last < (cfg::dev::cache_refresh_rate * 1ms)) 
         return true;
 #else
-    // Just refresh every 5ms good for most people
-    if (now - last < 5ms) 
+    // 8ms keeps the ESP smooth (~125 Hz) without hammering the game with
+    // cross-process reads every frame.
+    constexpr auto refresh_interval = 8ms;
+    if (now - last < refresh_interval)
         return true; // All good
 #endif
 

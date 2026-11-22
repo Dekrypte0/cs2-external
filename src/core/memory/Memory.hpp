@@ -1,6 +1,7 @@
 #ifndef _PPROCESS_HPP_
 #define _PPROCESS_HPP_
 
+#include <algorithm>
 #include <vector>
 #include <math.h>
 #include <Windows.h>
@@ -9,20 +10,7 @@
 #include <iostream>
 #include <Psapi.h> 
 
-typedef NTSTATUS(WINAPI* pNtReadVirtualMemory)(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, ULONG NumberOfBytesToRead, PULONG NumberOfBytesRead);
-typedef NTSTATUS(WINAPI* pNtWriteVirtualMemory)(HANDLE ProcessHandle, PVOID BaseAddress, PVOID Buffer, ULONG NumberOfBytesToWrite, PULONG NumberOfBytesWritten);
-
-class pMemory {
-
-public:
-	pMemory() {
-		pfnNtReadVirtualMemory = (pNtReadVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtReadVirtualMemory");
-		pfnNtWriteVirtualMemory = (pNtWriteVirtualMemory)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtWriteVirtualMemory");
-	}
-
-	pNtReadVirtualMemory pfnNtReadVirtualMemory;
-	pNtWriteVirtualMemory pfnNtWriteVirtualMemory;
-};
+#include "core/stealth/Stealth.hpp"
 
 struct ProcessModule
 {
@@ -61,37 +49,45 @@ public:
 		return pattern_address + offset_value + offset + sizeof(T);
 	}
 
+	// Large signature scans go through the same direct-syscall path as small
+	// reads, split into bounded chunks so a single oversized request never
+	// trips a size-based heuristic or a partial-read failure.
+	bool ReadRegion(uintptr_t address, void* buffer, size_t size) const
+	{
+		constexpr size_t chunk = 1u << 20; // 1 MiB
+		auto* out = static_cast<uint8_t*>(buffer);
+
+		for (size_t offset = 0; offset < size; offset += chunk) {
+			const size_t current = std::min(chunk, size - offset);
+			if (!stealth::Read(handle_, address + offset, out + offset, current))
+				return false;
+		}
+		return true;
+	}
+
 	bool read_raw(uintptr_t address, void* buffer, size_t size)
 	{
-		SIZE_T bytesRead;
-		pMemory cMemory;
-
-		NTSTATUS status = cMemory.pfnNtReadVirtualMemory(this->handle_, (PVOID)(address), buffer, static_cast<ULONG>(size), (PULONG)&bytesRead);
-	
-		return status == 0x00000000/*STATUS_SUCCESS*/ || bytesRead == size;
+		return stealth::Read(handle_, address, buffer, size);
 	}
 
 	template<class T>
 	void write(uintptr_t address, T value)
 	{
-		pMemory cMemory;
-		cMemory.pfnNtWriteVirtualMemory(handle_, (void*)address, &value, sizeof(T), 0);
+		stealth::Write(handle_, address, &value, sizeof(T));
 	}
 
 	template<class T>
 	T read(uintptr_t address)
 	{
 		T buffer{};
-		pMemory cMemory;
-
-		cMemory.pfnNtReadVirtualMemory(handle_, (void*)address, &buffer, sizeof(T), 0);
+		stealth::Read(handle_, address, &buffer, sizeof(T));
 		return buffer;
 	}
 
 	void write_bytes(uintptr_t addr, std::vector<uint8_t> patch)
 	{
-		pMemory cMemory;
-		cMemory.pfnNtWriteVirtualMemory(handle_, (void*)addr, &patch[0], patch.size(), 0);
+		if (!patch.empty())
+			stealth::Write(handle_, addr, patch.data(), patch.size());
 	}
 
 	uintptr_t read_multi_address(uintptr_t ptr, std::vector<uintptr_t> offsets)

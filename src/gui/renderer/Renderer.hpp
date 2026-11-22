@@ -30,11 +30,17 @@ private:
     void DestroyImpl();
 
     void Render();
+    void HandleOverlayHotkey();
     bool HandleState();
     bool HandleWindowOrder();
 private:
     bool isRunning = true;
     bool isOpen = false;
+
+    // F3 hides only the window. The engine, scripting and render loops keep
+    // running at full speed while the overlay is hidden.
+    bool overlay_hidden = false;
+    bool overlay_visible = true;
 
     std::atomic<bool> isFocused{false};
 };

@@ -21,7 +21,7 @@ bool Dumper::InitImpl() {
         return false;
     }
 
-    offsets::viewMatrix = temp - client.base;
+    offsets::viewMatrix = static_cast<DWORD>(temp - client.base);
     LOGF(VERBOSE, "Found 'viewMatrix' offset at 0x{:X}", offsets::viewMatrix);
 
     // Global Variables
@@ -30,7 +30,7 @@ bool Dumper::InitImpl() {
         // return false; // Not critical
     }
 
-    offsets::globalVars = temp - client.base;
+    offsets::globalVars = static_cast<DWORD>(temp - client.base);
     LOGF(VERBOSE, "Found 'globalVars' offset at 0x{:X}", offsets::globalVars);
 
     // Entity List
@@ -39,7 +39,7 @@ bool Dumper::InitImpl() {
         return false;
     }
 
-    offsets::entityList = temp - client.base;
+    offsets::entityList = static_cast<DWORD>(temp - client.base);
     LOGF(VERBOSE, "Found 'entityList' offset at 0x{:X}", offsets::entityList);
 
     // Local Player Controller
@@ -48,7 +48,7 @@ bool Dumper::InitImpl() {
         return false;
     }
 
-    offsets::localPlayerController = temp - client.base;
+    offsets::localPlayerController = static_cast<DWORD>(temp - client.base);
     LOGF(VERBOSE, "Found 'localPlayerController' offset at 0x{:X}", offsets::localPlayerController);
 
     // C4
@@ -57,7 +57,7 @@ bool Dumper::InitImpl() {
         //return false;
     }
 
-    offsets::plantedC4 = temp - client.base;
+    offsets::plantedC4 = static_cast<DWORD>(temp - client.base);
     LOGF(VERBOSE, "Found 'plantedC4' offset at 0x{:X}", offsets::plantedC4);
 
     // C4 carrier pointer
@@ -66,7 +66,7 @@ bool Dumper::InitImpl() {
         return false;
     }
 
-    offsets::weaponC4 = temp - client.base;
+    offsets::weaponC4 = static_cast<DWORD>(temp - client.base);
     LOGF(VERBOSE, "Found 'weaponC4 carrier' offset at 0x{:X}", offsets::weaponC4);
 
 #if 0
@@ -86,7 +86,7 @@ bool Dumper::InitImpl() {
         return false;
     }
 
-    offsets::csgoInput = temp - client.base;
+    offsets::csgoInput = static_cast<DWORD>(temp - client.base);
     LOGF(VERBOSE, "Found 'csgoInput' offset at 0x{:X}", offsets::csgoInput);
 #endif
 
@@ -98,7 +98,7 @@ bool Dumper::InitImpl() {
         return false;
     }
 
-    offsets::buildNumber = temp - engine.base;
+    offsets::buildNumber = static_cast<DWORD>(temp - engine.base);
     LOGF(VERBOSE, "Found 'buildNumber' offset at 0x{:X}", offsets::buildNumber);
 
     LOGF(INFO, "Successfully dumped offsets...");
@@ -157,18 +157,19 @@ void Dumper::ScanBlock(byte* buffer, const std::vector<short>& next, const std::
     if (!process->read_raw(start, buffer, size))
         return;
 
-    int length = signature.size();
+    const int length = static_cast<int>(signature.size());
+    const int limit = static_cast<int>(size);
 
-    for (int i = 0, j, k; i < size;)
+    for (int i = 0, j, k; i < limit;)
     {
         j = i; k = 0;
 
-        for (; k < length && j < size && (signature[k] == buffer[j] || signature[k] == 256); k++, j++);
+        for (; k < length && j < limit && (signature[k] == buffer[j] || signature[k] == 256); k++, j++);
 
         if (k == length)
             result.push_back(start + i);
 
-        if ((i + length) >= size)
+        if ((i + length) >= limit)
             return;
 
         int Num = next[buffer[i + length]];
@@ -216,7 +217,7 @@ std::vector<DWORD64> Dumper::ScanMemory(const std::string& sig, DWORD64 start, D
             searches++;
         }
 
-        ScanBlock(buffer, next, signature, start + (MAX_BLOCK_SIZE * searches), size, result);
+        ScanBlock(buffer, next, signature, start + (MAX_BLOCK_SIZE * searches), static_cast<DWORD>(size), result);
 
         start += mbi.RegionSize;
 

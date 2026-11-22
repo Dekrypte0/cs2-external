@@ -21,7 +21,7 @@ bool Config::ReadImpl() {
 	try {
 		data = json::parse(f);
 	}
-	catch (const std::exception& e) {
+	catch (const std::exception&) {
 		LOGF(FATAL, "Failed to parse configuration file");
 		WriteImpl();
 		return false;
@@ -125,11 +125,11 @@ bool Config::ReadImpl() {
 		//cfg::settings::console = data["utils"].value("console", true);
 		cfg::settings::watermark = data["utils"].value("watermark", true);
 		cfg::settings::streamproof = data["utils"].value("streamproof", false);
-		cfg::settings::vsync = data["utils"].value("vsync", true);
+		cfg::settings::vsync = data["utils"].value("vsync", false);
 		cfg::settings::free_cpu = data["utils"].value("free_cpu", true);
 		//cfg::settings::open_menu_key = data["utils"].value("open_menu_key", 0);
 	}
-	catch (const std::exception& e) {
+	catch (const std::exception&) {
 		LOGF(FATAL, "Failed to parse configuration");
 		WriteImpl();
 		return false;

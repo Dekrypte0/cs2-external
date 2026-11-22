@@ -1,5 +1,6 @@
 #include "Engine.hpp"
 
+#include "core/stealth/Obfuscate.hpp"
 #include "core/offsets/Dumper.hpp"
 #include "core/engine/cache/Cache.hpp"
 
@@ -70,7 +71,7 @@ bool Engine::AwaitProcess() {
         return false;
 
     do {
-        if (process->AttachProcess("cs2.exe"))
+        if (process->AttachProcess(OBF("cs2.exe").c_str()))
             break;
 
         if (process->pid_ && !process->handle_) {
@@ -100,8 +101,8 @@ bool Engine::AwaitModules() {
     LOGF(INFO, "Waiting for the game to open...");
 
     do {
-        this->client = process->GetModule("client.dll");
-        this->engine = process->GetModule("engine2.dll");
+        this->client = process->GetModule(OBF("client.dll").c_str());
+        this->engine = process->GetModule(OBF("engine2.dll").c_str());
 
         if (this->client.base && this->engine.base)
             break;

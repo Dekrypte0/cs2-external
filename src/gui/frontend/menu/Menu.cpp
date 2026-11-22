@@ -1,4 +1,5 @@
 #include "Menu.hpp"
+#include "core/stealth/Obfuscate.hpp"
 #include <cstring>
 #include "core/scripting/Scripting.hpp"
 #include "core/engine/cache/Cache.hpp"
@@ -47,16 +48,16 @@ void Menu::RenderImpl() {
 	static auto color_flags = ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_None;
 
 #ifdef _DEBUG
-	static auto title = "github.com/IMXNOOBX/cs2-external-esp (recode) [DEV]";
+	static std::string title = OBF("github.com/Dekrypte0/cs2-external (recode) [DEV]");
 #else
-	static auto title = "cs2-external-esp | recode";
+	static std::string title = OBF("cs2-external | recode");
 #endif
 
 	ImGui::SetNextWindowSize(ImVec2(600, 370), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowPos(ImVec2(screen.x / 2 - 300, screen.y / 2 - 150), ImGuiCond_FirstUseEver);
 
 	ImGui::GetWindowPos();
-	if (ImGui::Begin(title, nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) {
+	if (ImGui::Begin(title.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) {
 		this->pos = ImGui::GetWindowPos();
 		this->size = ImGui::GetWindowSize();
 
@@ -94,10 +95,12 @@ void Menu::RenderImpl() {
 				ImGui::SetCursorPosY(ImGui::GetCursorPos().y + space - 16.f * 3);
 
 				ImGui::Dummy(ImVec2(11, 0)); ImGui::SameLine();
-				ImGui::TextLinkOpenURL(Icons::DISCORD, "https://discord.gg/pRew8ZDkyp");
+				static const std::string discord_link = OBF("https://discord.gg/pRew8ZDkyp");
+				static const std::string github_link = OBF("https://github.com/Dekrypte0/cs2-external");
+				ImGui::TextLinkOpenURL(Icons::DISCORD, discord_link.c_str());
 				ImGui::SameLine();
 				ImGui::Dummy(ImVec2(11, 0)); ImGui::SameLine();
-				ImGui::TextLinkOpenURL(Icons::GITHUB, "https://github.com/IMXNOOBX/cs2-external-esp");
+				ImGui::TextLinkOpenURL(Icons::GITHUB, github_link.c_str());
 				ImGui::Separator();
 
 				ImGui::Checkbox("Enable", &cfg::enabled);
@@ -300,7 +303,8 @@ void Menu::RenderImpl() {
 				{
 					ImGui::Text("Scripts");
 					ImGui::SameLine();
-					ImGui::TextLinkOpenURL("Documentation", "https://github.com/IMXNOOBX/cs2-external-esp/blob/main/SCRIPTING.md");
+					static const std::string docs_link = OBF("https://github.com/Dekrypte0/cs2-external/blob/main/SCRIPTING.md");
+				ImGui::TextLinkOpenURL("Documentation", docs_link.c_str());
 					ImGui::Separator();
 
 					ImGui::TextWrapped("Scripts load from the current directory and the scripts folder. btn_* functions become buttons. Use Load/Unload per script, or Refresh to rescan the folders.");
@@ -436,8 +440,6 @@ void Menu::RenderImpl() {
 							cfg::settings::streamproof ? WindowAffinity::Invisible : WindowAffinity::Disabled
 						);
 					}
-
-					ImGui::Checkbox("Watermark", &cfg::settings::watermark);
 
 					if (ImGui::Checkbox("VSync", &cfg::settings::vsync))
 						Window::vsync = cfg::settings::vsync;

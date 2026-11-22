@@ -1,5 +1,6 @@
 #include "Memory.hpp"
 #include <tlhelp32.h>
+#include <utility>
 
 uint32_t pProcess::FindProcessIdByProcessName(const char* ProcessName)
 {
@@ -57,7 +58,7 @@ HWND pProcess::GetWindowHandleFromProcessId(DWORD ProcessId) {
 	return NULL; // No main window found for the given process ID
 }
 
-  bool pProcess::AttachProcess(const char* ProcessName)
+bool pProcess::AttachProcess(const char* ProcessName)
 {
 	this->pid_ = this->FindProcessIdByProcessName(ProcessName);
 
@@ -67,14 +68,9 @@ HWND pProcess::GetWindowHandleFromProcessId(DWORD ProcessId) {
 		MODULEINFO module_info;
 		DWORD _;
 
-		handle_ = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION |
-                                PROCESS_VM_READ
-							#ifdef _DEBUG
-								| PROCESS_VM_WRITE
-							#endif
-								, FALSE, pid_);
-
-		if (!handle_)
+		// Only VM_READ is needed for an external ESP. VM_OPERATION and VM_WRITE
+		// add noise to the handle's access mask and are never used here.
+		if (!stealth::OpenProcess(&handle_, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid_))
 			return false;
 
 		EnumProcessModulesEx(this->handle_, modules, sizeof(modules), &_, LIST_MODULES_64BIT);
@@ -101,7 +97,8 @@ bool pProcess::AttachWindow(const char* WindowName)
 		MODULEINFO module_info;
 		DWORD _;
 
-		handle_ = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid_);
+		if (!stealth::OpenProcess(&handle_, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, pid_))
+			return false;
 
 		EnumProcessModulesEx(this->handle_, modules, sizeof(modules), &_, LIST_MODULES_64BIT);
 		base_client_.base = (uintptr_t)modules[0];
@@ -132,18 +129,25 @@ ProcessModule pProcess::GetModule(const char* lModule)
 		MultiByteToWideChar(CP_UTF8, 0, lModule, -1, &wideModule[0], wideCharLength);
 	}
 
-	HANDLE handle_module = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, pid_);
-	MODULEENTRY32W module_entry_{};
-	module_entry_.dwSize = sizeof(MODULEENTRY32W);
+	HANDLE handle_module = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, pid_);
+	if (handle_module == INVALID_HANDLE_VALUE)
+		return { 0, 0 };
 
-	do
+	MODULEENTRY32W module_entry_{};
+	module_entry_.dwSize = sizeof(module_entry_);
+
+	if (Module32FirstW(handle_module, &module_entry_))
 	{
-		if (!wcscmp(module_entry_.szModule, wideModule.c_str()))
+		do
 		{
-			CloseHandle(handle_module);
-			return { (DWORD_PTR)module_entry_.modBaseAddr, module_entry_.dwSize };
-		}
-	} while (Module32NextW(handle_module, &module_entry_));
+			if (!wcscmp(module_entry_.szModule, wideModule.c_str()))
+			{
+				ProcessModule found{ (uintptr_t)module_entry_.modBaseAddr, module_entry_.dwSize };
+				CloseHandle(handle_module);
+				return found;
+			}
+		} while (Module32NextW(handle_module, &module_entry_));
+	}
 
 	CloseHandle(handle_module);
 	return { 0, 0 };
@@ -151,61 +155,38 @@ ProcessModule pProcess::GetModule(const char* lModule)
 
 LPVOID pProcess::Allocate(size_t size_in_bytes)
 {
+	// Requires VM_OPERATION, which AttachProcess deliberately no longer asks
+	// for. Kept for debug tooling; release builds never allocate in the target.
 	return VirtualAllocEx(this->handle_, NULL, size_in_bytes, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 }
 
 uintptr_t pProcess::FindSignature(std::vector<uint8_t> signature)
 {
-	std::unique_ptr<uint8_t[]> data;
-	data = std::make_unique<uint8_t[]>(this->base_client_.size);
-
-	if (!ReadProcessMemory(this->handle_, (void*)(this->base_client_.base), data.get(), this->base_client_.size, NULL)) {
-		return 0x0;
-	}
-
-	for (uintptr_t i = 0; i < this->base_client_.size; i++)
-	{
-		for (uintptr_t j = 0; j < signature.size(); j++)
-		{
-			if (signature.at(j) == 0x00)
-				continue;
-
-			if (*reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(&data[i + j])) == signature.at(j))
-			{
-				if (j == signature.size() - 1)
-					return this->base_client_.base + i;
-				continue;
-			}
-			break;
-		}
-	}
-	return 0x0;
+	return FindSignature(base_client_, std::move(signature));
 }
 
 uintptr_t pProcess::FindSignature(ProcessModule target_module, std::vector<uint8_t> signature)
 {
-	std::unique_ptr<uint8_t[]> data;
-	data = std::make_unique<uint8_t[]>(0xFFFFFFF);
+	if (!target_module.base || !target_module.size ||
+		signature.empty() || signature.size() > target_module.size)
+		return 0x0;
 
-	if (!ReadProcessMemory(this->handle_, (void*)(target_module.base), data.get(), 0xFFFFFFF, NULL)) {
-		return NULL;
-	}
+	auto data = std::make_unique<uint8_t[]>(target_module.size);
+	if (!ReadRegion(target_module.base, data.get(), target_module.size))
+		return 0x0;
 
-	for (uintptr_t i = 0; i < 0xFFFFFFF; i++)
+	const size_t last_start = target_module.size - signature.size();
+	for (size_t i = 0; i <= last_start; ++i)
 	{
-		for (uintptr_t j = 0; j < signature.size(); j++)
+		size_t j = 0;
+		for (; j < signature.size(); ++j)
 		{
-			if (signature.at(j) == 0x00)
-				continue;
-
-			if (*reinterpret_cast<uint8_t*>(reinterpret_cast<uintptr_t>(&data[i + j])) == signature.at(j))
-			{
-				if (j == signature.size() - 1)
-					return this->base_client_.base + i;
-				continue;
-			}
-			break;
+			// 0x00 is a wildcard in every signature in Offsets.hpp.
+			if (signature[j] != 0 && data[i + j] != signature[j])
+				break;
 		}
+		if (j == signature.size())
+			return target_module.base + i;
 	}
 	return 0x0;
 }

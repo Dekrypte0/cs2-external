@@ -73,7 +73,19 @@ void Renderer::DestroyImpl() {
 
 void Renderer::ThreadImpl() {
     while (isRunning) {
-        Render();
+        const auto frame_start = std::chrono::steady_clock::now();
+
+        // Cap the overlay so it cannot out-run the game or peg a GPU core.
+        // 4167 us is ~240 Hz: smooth, but far cheaper than an unthrottled Present.
+        if (cfg::settings::free_cpu)
+            std::this_thread::sleep_until(frame_start + std::chrono::microseconds(4167));
+
+        // Hidden by F3: keep the loop and hotkey alive, skip all draw work.
+        if (!overlay_hidden)
+            Render();
+
+        // F3 is global so it still works while the overlay is hidden.
+        HandleOverlayHotkey();
 
         // If the game is not focused dont do states, 
         // or will start focusing game & overlay
@@ -101,6 +113,26 @@ void Renderer::Render() {
     if (isOpen) Menu::Render();
 
     Window::EndRender();
+}
+
+void Renderer::HandleOverlayHotkey() {
+    static bool was_f3 = false;
+    const bool pressed = (GetAsyncKeyState(VK_F3) & 0x8000) != 0;
+
+    // F3 hides the window only. Reads, scripts and the render loop stay live.
+    if (!was_f3 && pressed) {
+        overlay_hidden = !overlay_hidden;
+        if (overlay_hidden) {
+            ShowWindow(Window::hwnd, SW_HIDE);
+            overlay_visible = false;
+        } else {
+            ShowWindow(Window::hwnd, SW_SHOW);
+            overlay_visible = true;
+            Window::SetClickthrough(Window::hwnd, !isOpen);
+        }
+        LOGF(VERBOSE, "F3 toggled overlay hidden to {}", overlay_hidden);
+    }
+    was_f3 = pressed;
 }
 
 bool Renderer::HandleState() {
@@ -151,7 +183,16 @@ bool Renderer::HandleWindowOrder() {
     if (!IsWindow(p->hwnd_))
         this->isRunning = false;
 
-    static bool overlay_visible = true;
+    // Hidden by F: stay hidden regardless of focus changes, but keep the
+    // render and update loops above running.
+    if (overlay_hidden) {
+        if (overlay_visible) {
+            ShowWindow(Window::hwnd, SW_HIDE);
+            overlay_visible = false;
+        }
+        return true;
+    }
+
     auto foreground = GetForegroundWindow();
     this->isFocused = (foreground == Window::hwnd || foreground == p->hwnd_);
 

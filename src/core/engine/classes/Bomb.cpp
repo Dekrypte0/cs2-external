@@ -39,7 +39,7 @@ bool Bomb::Update() {
 	if (!Bomb::prev_is_planted) 
 		plant_time = std::time(nullptr);
 
-	this->time_left = 41 - (std::time(nullptr) - plant_time);
+	this->time_left = 41.f - static_cast<float>(std::time(nullptr) - plant_time);
 
 	Bomb::prev_is_planted = true;
 	return true;
